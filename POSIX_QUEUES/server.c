@@ -37,7 +37,7 @@ void server_work(mqd_t mq_s, mqd_t mq_d, mqd_t mq_m)
     int message=0;
     while (running) 
     {
-        nanosleep(&(struct timespec){.tv_sec = 10, .tv_nsec = 0}, NULL); 
+        //nanosleep(&(struct timespec){.tv_sec = 10, .tv_nsec = 0}, NULL); 
         if (mq_receive(mq_s, msg, sizeof(msg), NULL) != -1) {
             printf("Received message from mq_s: %s\n", msg);
             sscanf(msg, "%d,%d,%d", &client_pid, &a, &b);
@@ -69,7 +69,6 @@ void server_work(mqd_t mq_s, mqd_t mq_d, mqd_t mq_m)
             if((mq_c = TEMP_FAILURE_RETRY(mq_open(queue_c, O_RDWR, 0600, &attr))) == (mqd_t)-1)
             {
                 printf("Server: Client %d has exited. Failed to send result\n", client_pid);
-                if(errno ==EAGAIN) ERR("mq_c open");
                 message=0;
                 continue;
             }
