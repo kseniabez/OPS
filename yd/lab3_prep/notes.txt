@@ -1,0 +1,163 @@
+There are two other functions related to mmap 
+msync - useful when mapping files, it forces the operating system to modify 
+the underlying file. For the sake of efficiemcy we modify memory that is mapped to a file,
+the system won't immediately apply those changes. it is done this way so that there aren't
+many small changes signifivatly slowing down the system. If the want to make sure that our 
+changes are wrtitten to the mapped file, we use msync. You can think about it as analogous 
+to fflush for streams.
+
+void *mmap(void *addr, size_t len, int prot, int flags,
+           int fildes, off_t off);
+addr - this parameter allows us to inform the operating system where in memory we want the map to be. In our use cases we pass NULL for the system to decide for us.
+len - means the size of the memory we want to map.
+prot - operations (read/write/execute - see man page) we want to do on the memory - similarly as with files.
+flags - this parameter determines the kind of mapping created by mmap. The most important flags are described below, read man 2 mmap to familiarize yourself with the full list and its details.
+MAP_ANONYMOUS - we create a new anonymous area of memory. When using this flag, the parameter filedes should be set to -1. When this flag is not used, the function maps a file by default.
+MAP_SHARED - the resulting mapping can be shared with different processes. In our case we almost always want to use this flag.
+MAP_PRIVATE - the opposite of the former flag - the resulting mapping is not shared, the memory will be copied in the child processes. Not very useful in our case, but still important. Have you ever wondered how malloc works?
+filedes - descriptor of the file we want to map.
+off - offset in the file we want to map. With MAP_ANONYMOUS it should always be set to 0.
+
+
+NAME
+       msync — synchronize memory with physical storage
+
+SYNOPSIS
+       #include <sys/mman.h>
+
+       int msync(void *addr, size_t len, int flags);
+NAME
+       ftruncate — truncate a file to a specified length
+
+SYNOPSIS
+       #include <unistd.h>
+
+       int ftruncate(int fildes, off_t length);
+
+DESCRIPTION
+       If fildes is not a valid file descriptor open for writing, the ftruncate() function shall fail.
+
+       If  fildes  refers  to  a  regular file, the ftruncate() function shall cause the size of the file to be truncated to
+       length.  If the size of the file previously exceeded length, the extra data shall no longer be available to reads  on
+       the  file. If the file previously was smaller than this size, ftruncate() shall increase the size of the file. If the
+       file size is increased, the extended area shall appear as if it were zero-filled. The value of the seek pointer shall
+       not be modified by a call to ftruncate().
+
+NAME
+       shm_open — open a shared memory object (REALTIME)
+
+SYNOPSIS
+       #include <sys/mman.h>
+
+       int shm_open(const char *name, int oflag, mode_t mode);
+
+NAME
+       sem_init — initialize an unnamed semaphore
+
+SYNOPSIS
+       #include <semaphore.h>
+
+       int sem_init(sem_t *sem, int pshared, unsigned value);
+
+DESCRIPTION
+       The sem_init() function shall initialize the unnamed semaphore referred to by sem.  The value of the initialized sem‐
+       aphore shall be value.  Following a successful call to sem_init(), the semaphore may be used in subsequent  calls  to
+       sem_wait(),  sem_timedwait(), sem_trywait(), sem_post(), and sem_destroy().  This semaphore shall remain usable until
+       the semaphore is destroyed.
+         If the pshared argument has a non-zero value, then the semaphore is shared  between  processes;  in  this  case,  any
+       process  that  can  access  the  semaphore sem can use sem for performing sem_wait(), sem_timedwait(), sem_trywait(),
+       sem_post(), and sem_destroy() operations.
+
+       If the pshared argument is zero, then the semaphore is shared between threads of the  process;  any  thread  in  this
+       process  can  use sem for performing sem_wait(), sem_timedwait(), sem_trywait(), sem_post(), and sem_destroy() opera‐
+       tions.
+
+
+NAME
+       sem_init — initialize an unnamed semaphore
+
+SYNOPSIS
+       #include <semaphore.h>
+
+       int sem_init(sem_t *sem, int pshared, unsigned value);
+
+DESCRIPTION
+       The sem_init() function shall initialize the unnamed semaphore referred to by sem.  The value of the initialized sem‐
+       aphore shall be value.  Following a successful call to sem_init(), the semaphore may be used in subsequent  calls  to
+       sem_wait(),  sem_timedwait(), sem_trywait(), sem_post(), and sem_destroy().  This semaphore shall remain usable until
+       the semaphore is destroyed.
+Setting up libquadmath0:amd64 (12.3.0-1ubuntu1~22.04) ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PTHREAD_MUTEXATTR_GETROBUST(3POSIX)               POSIX Programmer's Manual              PTHREAD_MUTEXATTR_GETROBUST(3POSIX)
+
+PROLOG
+       This  manual  page  is  part of the POSIX Programmer's Manual.  The Linux implementation of this interface may differ
+       (consult the corresponding Linux manual page for details of Linux behavior), or the interface may not be  implemented
+       on Linux.
+
+NAME
+       pthread_mutexattr_getrobust, pthread_mutexattr_setrobust — get and set the mutex robust attribute
+
+SYNOPSIS
+       #include <pthread.h>
+
+       int pthread_mutexattr_getrobust(const pthread_mutexattr_t *restrict
+           attr, int *restrict robust);
+       int pthread_mutexattr_setrobust(pthread_mutexattr_t *attr,
+           int robust);
+
+DESCRIPTION
+       The  pthread_mutexattr_getrobust()  and  pthread_mutexattr_setrobust() functions, respectively, shall get and set the
+       mutex robust attribute. This attribute is set in the robust parameter. Valid values for robust include:
+
+       PTHREAD_MUTEX_STALLED
+             No special actions are taken if the owner of the mutex is terminated while holding the  mutex  lock.  This  can
+             lead to deadlocks if no other thread can unlock the mutex.
+             This is the default value.
+
+       PTHREAD_MUTEX_ROBUST
+             If the process containing the owning thread of a robust mutex terminates while holding the mutex lock, the next
+             thread that acquires the mutex shall be notified about the termination by the return  value  [EOWNERDEAD]  from
+             the  locking function. If the owning thread of a robust mutex terminates while holding the mutex lock, the next
+             thread that attempts to acquire the mutex may be notified about the termination  by  the  return  value  [EOWN‐
+             ERDEAD].   The  notified thread can then attempt to make the state protected by the mutex consistent again, and
+             if successful can mark the mutex state as consistent by calling pthread_mutex_consistent().  After a subsequent
+             successful  call  to pthread_mutex_unlock(), the mutex lock shall be released and can be used normally by other
+             threads. If the mutex is unlocked without a call to pthread_mutex_consistent(), it shall be  in  a  permanently
+             unusable  state  and all attempts to lock the mutex shall fail with the error [ENOTRECOVERABLE].  The only per‐
+             missible operation on such a mutex is pthread_mutex_destroy().
+
+       The behavior is undefined if the value specified by the attr argument to pthread_mutexattr_getrobust() or pthread_mu‐
+       texattr_setrobust() does not refer to an initialized mutex attributes object.
