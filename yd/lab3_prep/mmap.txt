@@ -1,0 +1,7 @@
+Source: https://cs341.cs.illinois.edu/coursebook/Ipc#translating-addresses
+
+mmap does more than take a file and map it to memory. 
+It is the general interface for creating shared memory among processes.
+ Currently it only supports regular files and POSIX shmem (“Mmap” #ref-mmap_2018).
+  Naturally, you can read all about it in the reference above, which references the current working group POSIX standard. Some other options to note in the page will follow.
+
